@@ -1,7 +1,5 @@
 package application.points.model;
 
-//import org.json.simple.JSONObject;
-
 import java.math.BigDecimal;
 
 public class Point {
