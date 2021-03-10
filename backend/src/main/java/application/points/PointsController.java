@@ -19,7 +19,7 @@ public class PointsController {
     }
 
     @GetMapping(value = "/", produces = "application/json")
-    public List<Point> getPoints() {
+    public List<List<Point>> getPoints() {
         return pointsService.getPoints();
     }
 }

@@ -19,8 +19,8 @@ public class PointsService {
     private double maxColorValue;
     private double minColorValue;
 
-    public List<Point> getPoints() {
-        String fileName = "Tricity_eudem_xyz.bin";
+    public List<List<Point>> getPoints() {
+        String fileName = "C:\\Users\\Mile\\Desktop\\Thesis stuff\\Tricity_eudem_xyz.bin";
         List<String> fileLines = readFileAndSetColors(fileName);
         return mapToPoints(fileLines);
     }
@@ -33,7 +33,7 @@ public class PointsService {
 
         try {
 
-            File file = ResourceUtils.getFile("classpath:bin\\" + fileName);
+            File file = new File(fileName);
             final BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
             String line;
             while((line = reader.readLine()) != null) {
@@ -56,19 +56,35 @@ public class PointsService {
         return lines;
     }
 
-    private List<Point> mapToPoints(List<String> lines) {
+    private List<List<Point>> mapToPoints(List<String> lines) {
 
-        final List<Point> points = new ArrayList<>();
-        for (final String line: lines) {
+        final List<List<Point>> points = new ArrayList<>();
+        List<Point> currentList = new ArrayList<>();
+        BigDecimal prevX = BigDecimal.valueOf(Double.MAX_VALUE);
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
             final String[] split = line.split(" ", 3);
             final BigDecimal x = new BigDecimal(split[0]);
             final BigDecimal y = new BigDecimal(split[1]);
             final double z = Double.parseDouble(split[2]);
 
+
+            if (x.compareTo(prevX) < 0) {
+                points.add(currentList);
+                currentList = new ArrayList<>();
+            }
+            prevX = x;
+
             final double color = (z - minColorValue) * 255 / (maxColorValue - minColorValue);
 
-            points.add(new Point(x, y ,color));
+            currentList.add(new Point(x, y ,color));
+
+            if (i == lines.size() - 1) {
+                points.add(currentList);
+            }
         }
+
+        points.remove(0);
         return points;
     }
 }

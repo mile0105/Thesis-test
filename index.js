@@ -6,8 +6,10 @@ import Point from 'ol/geom/Point';
 import {fromLonLat} from "ol/proj";
 import {Vector} from "ol/source";
 import WebGLPointsLayer from "ol/layer/WebGLPoints";
+import {readFile, readPoints, readStations} from "./apiService";
 
 function init() {
+readPoints();
 fetch('http://localhost:8080')
   .then(response => response.json())
   .then(data => {
