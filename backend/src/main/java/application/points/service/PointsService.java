@@ -66,7 +66,7 @@ public class PointsService {
             final String[] split = line.split(" ", 3);
             final BigDecimal x = new BigDecimal(split[0]);
             final BigDecimal y = new BigDecimal(split[1]);
-            final double z = Double.parseDouble(split[2]);
+            final BigDecimal z = new BigDecimal(split[2]);
 
 
             if (x.compareTo(prevX) < 0) {
@@ -75,9 +75,9 @@ public class PointsService {
             }
             prevX = x;
 
-            final double color = (z - minColorValue) * 255 / (maxColorValue - minColorValue);
+            final double color = (z.doubleValue() - minColorValue) * 255 / (maxColorValue - minColorValue);
 
-            currentList.add(new Point(x, y ,color));
+            currentList.add(new Point(x, y, z, color));
 
             if (i == lines.size() - 1) {
                 points.add(currentList);

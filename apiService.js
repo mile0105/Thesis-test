@@ -1,10 +1,13 @@
-export const readStations = () => {
+export const readStations = async () => {
 
-  fetch('http://localhost:8080/stations').then(res => res.json()).then(data => console.log(data));
+  const res = await fetch('http://localhost:8080/stations').then(res => res.json());
+
+  return res;
 };
 
 
+export const readPoints = async () => {
+  const res = await fetch('http://localhost:8080').then(res => res.json());
 
-export const readPoints = () => {
-  fetch('http://localhost:8080').then(res => res.json()).then(data => console.log(data));
+  return res;
 };

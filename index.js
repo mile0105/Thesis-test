@@ -9,7 +9,7 @@ import WebGLPointsLayer from "ol/layer/WebGLPoints";
 import {readFile, readPoints, readStations} from "./apiService";
 
 function init() {
-readPoints();
+readPoints().then(() => console.log('kurwa'));
 fetch('http://localhost:8080')
   .then(response => response.json())
   .then(data => {
