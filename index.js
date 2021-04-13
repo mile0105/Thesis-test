@@ -8,6 +8,7 @@ import {Vector} from "ol/source";
 import WebGLPointsLayer from "ol/layer/WebGLPoints";
 import {readPoints, readStations} from "./apiService";
 import {floodFill} from "./floodfill";
+import {euclidianDistance} from "./helper";
 
 var max = 0;
 
@@ -22,10 +23,13 @@ function init() {
       const i = nearestPointPositions[0];
       const j = nearestPointPositions[1];
 
-      floodFill(points, stations[3], i, j);
+      floodFill(points, stations[0], i, j);
       max = getMaxPollutionFromStations(stations);
 
 
+      const pm10Values = points.flat().filter(point => point.pm10 > 0).map(point => point.pm10).sort();
+
+      console.log(pm10Values)
 
     }).then(() => {
 
@@ -75,7 +79,7 @@ function init() {
             0,
             "#000000",
             max,
-            "#ffffff"
+            "#cccccc"
           ],
           rotateWithView: false,
           offset: [0, 0],
@@ -130,14 +134,8 @@ const getNearestPointPosition = (points, station) => {
   return [nearestI, nearestJ];
 };
 
-const euclidianDistance = (pointA, pointB) => {
-  const a = pointA.x - pointB.x;
-  const b = pointA.y - pointB.y;
-
-  return Math.sqrt(a*a + b*b);
-};
 
 const getMaxPollutionFromStations = (stations) => {
   //todo change to proper
-  return stations[3].pm10Value;
+  return stations[0].pm10Value;
 };
