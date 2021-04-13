@@ -9,6 +9,8 @@ import WebGLPointsLayer from "ol/layer/WebGLPoints";
 import {readPoints, readStations} from "./apiService";
 import {floodFill} from "./floodfill";
 
+var max = 0;
+
 function init() {
   readPoints().then(points => {
 
@@ -20,33 +22,36 @@ function init() {
       const i = nearestPointPositions[0];
       const j = nearestPointPositions[1];
 
-      floodFill(points, stations[0], i, j);
-      //floodfill...
+      floodFill(points, stations[3], i, j);
+      max = getMaxPollutionFromStations(stations);
+
+
 
     }).then(() => {
-      //todo interpolate similar to down
-    })
-  });
-  fetch('http://localhost:8080')
-    .then(response => response.json())
-    .then(data => {
-
-      const centerPoint = data.length-1;
 
       let features = [];
-      for(let point of data) {
+      const N = points.length;
+      const M = points[0].length;
 
-        const color = point.color;
+      const centerPoint = points[N-1][M-1];
 
-        const feature = new Feature({
-          geometry: new Point(
-            fromLonLat([point.x, point.y])
-          ),
-          color: color,
-        });
+      for(let i = 0; i<N; i++) {
+          for(let j = 0; j<M; j++) {
+              const point = points[i][j];
 
-        features.push(feature);
+              const pm10 = point.pm10;
+
+              const feature = new Feature({
+                geometry: new Point(
+                  fromLonLat([point.x, point.y])
+                ),
+                color: pm10,
+              });
+              features.push(feature);
+
+          }
       }
+
 
       const layerStyle = {
         symbol: {
@@ -56,7 +61,7 @@ function init() {
             ['exponential', 4],
             ['zoom'],
             2, 1,
-            15, 60
+            10, 10
           ],
           color: [ 'interpolate',
             [
@@ -69,12 +74,12 @@ function init() {
             ],
             0,
             "#000000",
-            255,
+            max,
             "#ffffff"
           ],
           rotateWithView: false,
           offset: [0, 0],
-          opacity: 1
+          opacity: 80
         }
       };
 
@@ -87,7 +92,6 @@ function init() {
         style: layerStyle,
       });
 
-
       const map = new Map({
         target: 'map',
         layers: [
@@ -97,14 +101,15 @@ function init() {
           vectorLayer,
         ],
         view: new View({
-          center: fromLonLat([data[centerPoint].x, data[centerPoint].y]),
+          center: fromLonLat([centerPoint.x, centerPoint.y]),
           zoom: 10,
           maxZoom: 13,
         })
       });
       map.render();
 
-    });
+    })
+  });
 }
 
 init();
@@ -115,7 +120,7 @@ const getNearestPointPosition = (points, station) => {
 
   for (let i = 0; i<points.length; i++) {
     for (let j = 0; j<points[i].length; j++) {
-      if(euclidianDistance(points[i][j], station) < euclidianDistance(points[nearestI][nearestJ], station)) {
+      if (euclidianDistance(points[i][j], station) < euclidianDistance(points[nearestI][nearestJ], station)) {
         nearestI = i;
         nearestJ = j;
       }
@@ -130,4 +135,9 @@ const euclidianDistance = (pointA, pointB) => {
   const b = pointA.y - pointB.y;
 
   return Math.sqrt(a*a + b*b);
+};
+
+const getMaxPollutionFromStations = (stations) => {
+  //todo change to proper
+  return stations[3].pm10Value;
 };
