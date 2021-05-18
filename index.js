@@ -11,51 +11,53 @@ import {floodFill} from "./floodfill";
 import {euclidianDistance} from "./helper";
 
 var max = 0;
+var interpolatedPoints = [];
 
 function init() {
   readPoints().then(points => {
 
+    // console.log(undefined > 0);
     readStations().then(stations => {
 
-      //todo make a loop on all stations
-      const nearestPointPositions = getNearestPointPosition(points, stations[0]);
-
-      const i = nearestPointPositions[0];
-      const j = nearestPointPositions[1];
-
-      floodFill(points, stations[0], i, j);
       max = getMaxPollutionFromStations(stations);
 
+      for(let station of stations) {
+        const nearestPointPositions = getNearestPointPosition(points, station);
 
-      const pm10Values = points.flat().filter(point => point.pm10 > 0).map(point => point.pm10).sort();
+        const i = nearestPointPositions[0];
+        const j = nearestPointPositions[1];
 
-      console.log(pm10Values)
+        floodFill(points, station, i, j, max);
+        const pm10Values = points.flat().filter(point => point.pm10 > 0).map(point => point.pm10).sort();
+      }
+
+      for(let point of points.flat()) {
+        interpolatedPoints.push({
+          x: point.x,
+          y: point.y,
+          pm10: point.pm10 * 255/max,
+        })
+      }
 
     }).then(() => {
 
       let features = [];
-      const N = points.length;
-      const M = points[0].length;
+      const N = interpolatedPoints.length;
 
-      const centerPoint = points[N-1][M-1];
+      const centerPoint = interpolatedPoints[N-1];
 
-      for(let i = 0; i<N; i++) {
-          for(let j = 0; j<M; j++) {
-              const point = points[i][j];
 
-              const pm10 = point.pm10;
+      for(let point of interpolatedPoints) {
+        const pm10 = point.pm10;
 
-              const feature = new Feature({
-                geometry: new Point(
-                  fromLonLat([point.x, point.y])
-                ),
-                color: pm10,
-              });
-              features.push(feature);
-
-          }
+        const feature = new Feature({
+          geometry: new Point(
+            fromLonLat([point.x, point.y])
+          ),
+          color: pm10,
+        });
+        features.push(feature);
       }
-
 
       const layerStyle = {
         symbol: {
@@ -65,7 +67,7 @@ function init() {
             ['exponential', 4],
             ['zoom'],
             2, 1,
-            10, 10
+            15, 60
           ],
           color: [ 'interpolate',
             [
@@ -78,8 +80,8 @@ function init() {
             ],
             0,
             "#000000",
-            max,
-            "#cccccc"
+            255,
+            "#ffffff"
           ],
           rotateWithView: false,
           offset: [0, 0],
@@ -136,6 +138,11 @@ const getNearestPointPosition = (points, station) => {
 
 
 const getMaxPollutionFromStations = (stations) => {
-  //todo change to proper
-  return stations[0].pm10Value;
+  let max = stations[0].pm10Value;
+  for (let station of stations) {
+    if(station.pm10Value > max) {
+      max = station.pm10Value;
+    }
+  }
+  return max;
 };
