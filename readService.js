@@ -1,40 +1,11 @@
-var stations;
-var points;
 export const readStations = () => {
-  const url = 'http://127.0.0.1:8887/files/Stacje.geojson';
-  const xhrDoc = new XMLHttpRequest();
-  xhrDoc.open('GET', url, false);
-
-  xhrDoc.onreadystatechange = function() {
-    if(this.readyState == 4) {
-
-      if(this.status == 200) {
-        stations = parseStations(JSON.parse(this.response).features);
-      }
-    }
-  };
-
-  xhrDoc.send();
-  return stations;
+  const data = readFile('http://127.0.0.1:8887/files/Stacje.geojson');
+  return parseStations(data);
 };
 
-
 export const readPoints = () => {
-  const url = 'http://127.0.0.1:8887/files/Tricity_eudem_xyz.bin';
-  const xhrDoc = new XMLHttpRequest();
-  xhrDoc.open('GET', url, false);
-
-  xhrDoc.onreadystatechange = function() {
-    if(this.readyState == 4) {
-
-      if(this.status == 200) {
-        points = parsePoints(this.response);
-      }
-    }
-  };
-
-  xhrDoc.send();
-
+  const data = readFile('http://127.0.0.1:8887/files/Tricity_eudem_xyz.bin');
+  const points = parsePoints(data);
   return mapToPointsArray(points);
 };
 
@@ -78,7 +49,8 @@ const mapToPointsArray = (points) => {
   return pointsArray;
 };
 
-const parseStations = (features) => {
+const parseStations = (fileData) => {
+  const features = JSON.parse(fileData).features;
   const stations = [];
 
   for(let feature of features) {
@@ -90,8 +62,27 @@ const parseStations = (features) => {
       pm10Value: properties.PM10_avg,
     });
   }
-
-
   return stations;
+};
+
+
+const readFile = (fileUrl) => {
+  let fileData;
+
+  const xhrDoc = new XMLHttpRequest();
+  xhrDoc.open('GET', fileUrl, false);
+
+  xhrDoc.onreadystatechange = function() {
+    if(this.readyState == 4) {
+
+      if(this.status == 200) {
+        fileData = this.response;
+      }
+    }
+  };
+
+  xhrDoc.send();
+
+  return fileData;
 };
 
